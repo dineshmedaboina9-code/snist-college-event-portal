@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-lilac: #F8F8F9;
+  --color-darkblue: #111439;
+}
+
+body {
+  background-color: #F8F8F9;
+  color: #111439;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+/* Stripe-inspired text gradient */
+.text-gradient-stripe {
+  background: linear-gradient(135deg, #635BFF 0%, #00D4FF 50%, #FF3B8A 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-purple-cyan {
+  background: linear-gradient(135deg, #635BFF 0%, #00D4FF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Stripe-inspired gradient button */
+.btn-stripe-gradient {
+  background: linear-gradient(135deg, #635BFF 0%, #00D4FF 60%, #FF3B8A 100%);
+  background-size: 200% 200%;
+  transition: all 0.4s ease;
+  color: #ffffff;
+}
+
+.btn-stripe-gradient:hover {
+  background-position: right center;
+  box-shadow: 0 10px 25px -5px rgba(99, 91, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+/* Subtle glow badge */
+.badge-gradient-border {
+  position: relative;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid transparent;
+}
+
+.badge-gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, #635BFF, #00D4FF, #FF3B8A);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Glassmorphism on White Lilac */
+.glass-lilac {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}

@@ -1,0 +1,17 @@
+{
+  "name": "snist-college-event-management-portal",
+  "version": "1.0.0",
+  "description": "Full-stack College Event Management Portal (CEMP) with Automated QR Code Attendance for SNIST",
+  "scripts": {
+    "install:all": "cd backend && npm install && cd ../frontend && npm install",
+    "seed": "cd backend && node database/seed.js",
+    "backend": "cd backend && npm start",
+    "frontend": "cd frontend && npm run dev",
+    "build:all": "cd frontend && npm install && npm run build && cd ../backend && npm install",
+    "start:prod": "node backend/server.js",
+    "dev": "npx concurrently \"npm run backend\" \"npm run frontend\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

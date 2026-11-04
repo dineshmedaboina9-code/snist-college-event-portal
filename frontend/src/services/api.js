@@ -9,12 +9,34 @@ const api = axios.create({
   timeout: 4000
 });
 
+// Check if running on static cloud hosting (Vercel, Netlify) without backend server
+const isStaticHosting = typeof window !== 'undefined' && 
+  (window.location.hostname.includes('vercel.app') || window.location.hostname.includes('netlify.app')) &&
+  !import.meta.env.VITE_API_BASE_URL;
+
 // Attach Authorization token to requests if available
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('snist_auth_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  // If deployed on Vercel without a configured remote backend, immediately use mock adapter
+  // This guarantees 0ms latency and eliminates all HTTP 405 Method Not Allowed / 200 HTML rewrite errors
+  if (isStaticHosting) {
+    config.adapter = async () => {
+      const mockRes = await handleMockRequest(config);
+      return {
+        data: mockRes.data,
+        status: 200,
+        statusText: 'OK',
+        headers: { 'content-type': 'application/json' },
+        config,
+        request: {}
+      };
+    };
+  }
+
   return config;
 }, (error) => {
   return Promise.reject(error);
@@ -130,55 +152,7 @@ const handleMockRequest = async (config) => {
     return { data: { success: true, message: 'Event deleted successfully.' } };
   }
 
-  // 4. POST /auth/login (Student Login)
-  if (method === 'post' && url.includes('/auth/login')) {
-    const { identifier, password } = body;
-    const cleanId = (identifier || '').trim().toLowerCase();
-    
-    // Find in store
-    const user = store.users.find(u => 
-      (u.roll_number?.toLowerCase() === cleanId || u.email?.toLowerCase() === cleanId)
-    );
-
-    if (user) {
-      const token = `snist_token_${user.id}_${Date.now()}`;
-      return {
-        data: {
-          success: true,
-          message: 'Logged in successfully!',
-          token,
-          user: {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            roll_number: user.roll_number,
-            department: user.department,
-            role: user.role || 'student'
-          }
-        }
-      };
-    }
-
-    // Default Fallback Student if not found
-    const demoStudent = {
-      id: 1,
-      name: 'Rahul Verma',
-      email: 'rahul@snist.edu.in',
-      roll_number: cleanId.toUpperCase() || '23311A66A6',
-      department: 'Artificial Intelligence & Data Science',
-      role: 'student'
-    };
-    return {
-      data: {
-        success: true,
-        message: 'Logged in successfully!',
-        token: `snist_demo_token_${Date.now()}`,
-        user: demoStudent
-      }
-    };
-  }
-
-  // 5. POST /auth/admin/login (Admin / Organizer Login)
+  // 4. POST /auth/admin/login (Admin / Organizer Login) - MUST be checked before /auth/login
   if (method === 'post' && url.includes('/auth/admin/login')) {
     const { email } = body;
     const cleanEmail = (email || '').trim().toLowerCase();
@@ -212,6 +186,54 @@ const handleMockRequest = async (config) => {
         message: 'Staff authentication successful!',
         token: `snist_admin_token_${Date.now()}`,
         user: admin
+      }
+    };
+  }
+
+  // 5. POST /auth/login (Student Login)
+  if (method === 'post' && (url.endsWith('/auth/login') || (url.includes('/auth/login') && !url.includes('/auth/admin/login')))) {
+    const { identifier } = body;
+    const cleanId = (identifier || '').trim().toLowerCase();
+    
+    // Find in store
+    const user = store.users.find(u => 
+      (u.roll_number?.toLowerCase() === cleanId || u.email?.toLowerCase() === cleanId)
+    );
+
+    if (user) {
+      const token = `snist_token_${user.id}_${Date.now()}`;
+      return {
+        data: {
+          success: true,
+          message: 'Logged in successfully!',
+          token,
+          user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            roll_number: user.roll_number,
+            department: user.department,
+            role: user.role || 'student'
+          }
+        }
+      };
+    }
+
+    // Default Fallback Student if not found
+    const demoStudent = {
+      id: 1,
+      name: 'Rahul Verma',
+      email: 'rahul@snist.edu.in',
+      roll_number: (identifier || '23311A66A6').toUpperCase(),
+      department: 'Artificial Intelligence & Data Science',
+      role: 'student'
+    };
+    return {
+      data: {
+        success: true,
+        message: 'Logged in successfully!',
+        token: `snist_demo_token_${Date.now()}`,
+        user: demoStudent
       }
     };
   }
@@ -481,12 +503,25 @@ const handleMockRequest = async (config) => {
 // Response interceptor: Tries real backend, if unreachable, seamlessly falls back to mock engine
 api.interceptors.response.use(
   (response) => {
-    // If response is good, return it
+    // If Vercel SPA rewrite returned HTML for an API call, it's not a real API response!
+    const isHtmlResponse = typeof response.data === 'string' && (response.data.includes('<!doctype') || response.data.includes('<html'));
+    if (isHtmlResponse && response.config) {
+      return handleMockRequest(response.config);
+    }
     return response;
   },
   async (error) => {
-    // Check if error is network failure, 404, or 5xx server error
-    const shouldFallback = !error.response || error.response.status === 404 || error.response.status >= 500 || error.code === 'ECONNABORTED' || error.message?.includes('Network Error');
+    const status = error.response?.status;
+    const isHtmlError = typeof error.response?.data === 'string' && (error.response?.data?.includes('<!doctype') || error.response?.data?.includes('<html'));
+    
+    // Status 405 (Method Not Allowed) is what Vercel returns for POST/PUT/DELETE on static files
+    const shouldFallback = !error.response || 
+      status === 404 || 
+      status === 405 || 
+      status >= 500 || 
+      isHtmlError || 
+      error.code === 'ECONNABORTED' || 
+      error.message?.includes('Network Error');
     
     if (shouldFallback && error.config) {
       try {

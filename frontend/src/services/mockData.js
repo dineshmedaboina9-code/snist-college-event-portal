@@ -137,9 +137,9 @@ const INITIAL_REGISTRATIONS = [
     qr_token: 'SNIST-AI-23311A66A6-9X4F',
     status: 'CONFIRMED',
     registration_date: '2026-11-01 10:30:00',
-    attendance_id: 501,
-    check_in_time: '2026-11-01 10:45:00',
-    is_attended: true
+    attendance_id: null,
+    check_in_time: null,
+    is_attended: false
   },
   {
     registration_id: 102,
@@ -151,8 +151,43 @@ const INITIAL_REGISTRATIONS = [
     attendance_id: null,
     check_in_time: null,
     is_attended: false
+  },
+  {
+    registration_id: 103,
+    student_id: 1,
+    event_id: 3,
+    qr_token: 'SNIST-HACK-23311A66A6-4P9L',
+    status: 'CONFIRMED',
+    registration_date: '2026-11-03 09:20:00',
+    attendance_id: null,
+    check_in_time: null,
+    is_attended: false
+  },
+  {
+    registration_id: 104,
+    student_id: 1,
+    event_id: 4,
+    qr_token: 'SNIST-CULT-23311A66A6-3W8R',
+    status: 'CONFIRMED',
+    registration_date: '2026-11-03 16:45:00',
+    attendance_id: null,
+    check_in_time: null,
+    is_attended: false
+  },
+  {
+    registration_id: 105,
+    student_id: 1,
+    event_id: 5,
+    qr_token: 'SNIST-SPORT-23311A66A6-6V2Q',
+    status: 'CONFIRMED',
+    registration_date: '2026-11-04 08:10:00',
+    attendance_id: null,
+    check_in_time: null,
+    is_attended: false
   }
 ];
+
+const DB_VERSION = 4;
 
 export const getStore = () => {
   let store = null;
@@ -163,8 +198,10 @@ export const getStore = () => {
     // fallback
   }
 
-  if (!store || !store.events || store.events.length === 0) {
+  // Force upgrade if store is missing or older version without all 5 active presentation passes
+  if (!store || !store.events || store.events.length === 0 || store._v !== DB_VERSION || !store.registrations || store.registrations.length < 5) {
     store = {
+      _v: DB_VERSION,
       events: INITIAL_EVENTS,
       users: INITIAL_USERS,
       registrations: INITIAL_REGISTRATIONS,
@@ -183,6 +220,22 @@ export const getStore = () => {
           message: 'Welcome to the SNIST College Event Portal! Discover, register, and attend campus events.',
           notification_type: 'SYSTEM',
           is_read: true,
+          created_at: new Date().toISOString()
+        },
+        {
+          notification_id: 3,
+          student_id: 1,
+          message: 'Your Digital QR Pass for Sreevision 2026 is ready to scan.',
+          notification_type: 'REGISTRATION',
+          is_read: false,
+          created_at: new Date().toISOString()
+        },
+        {
+          notification_id: 4,
+          student_id: 1,
+          message: 'GenAI Hackathon confirmed! Check in at Innovation Hub on event day.',
+          notification_type: 'REGISTRATION',
+          is_read: false,
           created_at: new Date().toISOString()
         }
       ]

@@ -211,10 +211,15 @@ export default function AttendanceScanner() {
               </div>
 
               {/* Manual Token Fallback */}
-              <div className="pt-2 border-t border-slate-100">
-                <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider block mb-2">
-                  Manual Pass Token Entry
-                </span>
+              <div className="pt-2 border-t border-slate-100 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider block">
+                    Manual Pass Token Entry
+                  </span>
+                  <span className="text-[10px] font-bold text-[#635BFF] bg-indigo-50 px-2 py-0.5 rounded-md">
+                    Live Demo Ready
+                  </span>
+                </div>
                 <form onSubmit={handleManualSubmit} className="flex gap-2">
                   <input
                     type="text"
@@ -231,6 +236,38 @@ export default function AttendanceScanner() {
                     {scanLoading ? 'Checking...' : 'Verify'}
                   </button>
                 </form>
+
+                {/* 5 Presentation Demo Passes */}
+                <div className="p-3 bg-slate-50/80 rounded-2xl border border-slate-200/80 space-y-2">
+                  <span className="text-[10px] font-bold text-slate-600 flex items-center gap-1.5 uppercase tracking-wide">
+                    <Sparkles className="w-3 h-3 text-[#635BFF]" /> Fast Presentation Pass Scans (5 Active Events):
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[
+                      { label: '1. AI & ML Workshop', token: 'SNIST-AI-23311A66A6-9X4F', eventId: '1' },
+                      { label: '2. Sreevision 2026', token: 'SNIST-SREE-23311A66A6-7M2K', eventId: '2' },
+                      { label: '3. GenAI Hackathon', token: 'SNIST-HACK-23311A66A6-4P9L', eventId: '3' },
+                      { label: '4. Cultural Fest', token: 'SNIST-CULT-23311A66A6-3W8R', eventId: '4' },
+                      { label: '5. Sports League', token: 'SNIST-SPORT-23311A66A6-6V2Q', eventId: '5' }
+                    ].map((p, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => {
+                          setSelectedEventId(p.eventId);
+                          handleTokenScanned(p.token);
+                        }}
+                        className="text-[10px] font-mono font-bold px-2.5 py-1.5 bg-white hover:bg-indigo-50 hover:text-[#635BFF] text-[#111439] rounded-lg border border-slate-200 transition shadow-xs flex items-center gap-1"
+                      >
+                        <QrCode className="w-3 h-3 text-[#635BFF]" />
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-slate-500 italic">
+                    Tip: Click once to mark verified attendance. Click a second time to demonstrate duplicate prevention!
+                  </p>
+                </div>
               </div>
 
             </div>

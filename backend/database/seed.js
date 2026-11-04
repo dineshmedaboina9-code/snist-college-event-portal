@@ -149,38 +149,30 @@ async function seed() {
       console.log('Seeded 6 SNIST campus events.');
     }
 
-    // Seed Registrations & Attendance for demo
-    const [existingRegs] = await connection.query('SELECT COUNT(*) as count FROM registrations');
-    if (existingRegs[0].count === 0) {
-      // Register Rahul (id 1) and Priya (id 2) to event 1 and event 2
-      const token1 = 'QR-' + uuidv4().substring(0, 8).toUpperCase();
-      const token2 = 'QR-' + uuidv4().substring(0, 8).toUpperCase();
-      const token3 = 'QR-' + uuidv4().substring(0, 8).toUpperCase();
-      const token4 = 'QR-' + uuidv4().substring(0, 8).toUpperCase();
+    // Seed 5 Active Registrations for Rahul (Student 1) for Presentation Scanner Demo
+    await connection.query('DELETE FROM attendance');
+    await connection.query('DELETE FROM registrations');
 
-      await connection.query(`
-        INSERT INTO registrations (student_id, event_id, qr_token, status) VALUES 
-        (1, 1, ?, 'CONFIRMED'),
-        (1, 2, ?, 'CONFIRMED'),
-        (2, 1, ?, 'CONFIRMED'),
-        (3, 2, ?, 'CONFIRMED');
-      `, [token1, token2, token3, token4]);
+    await connection.query(`
+      INSERT INTO registrations (student_id, event_id, qr_token, status) VALUES 
+      (1, 1, 'SNIST-AI-23311A66A6-9X4F', 'CONFIRMED'),
+      (1, 2, 'SNIST-SREE-23311A66A6-7M2K', 'CONFIRMED'),
+      (1, 3, 'SNIST-HACK-23311A66A6-4P9L', 'CONFIRMED'),
+      (1, 4, 'SNIST-CULT-23311A66A6-3W8R', 'CONFIRMED'),
+      (1, 5, 'SNIST-SPORT-23311A66A6-6V2Q', 'CONFIRMED');
+    `);
 
-      // Seed 1 attendance for registration 1
-      await connection.query(`
-        INSERT INTO attendance (registration_id, event_id, marked_by) VALUES (1, 1, 2);
-      `);
+    // Seed Notifications
+    await connection.query(`
+      INSERT INTO notifications (student_id, message, notification_type) VALUES 
+      (1, 'Registration confirmed for AI & Machine Learning Workshop! Present your QR code at the entrance.', 'REGISTRATION'),
+      (1, 'Registration confirmed for Sreevision 2026 Technical Symposium! Your digital QR pass is ready.', 'REGISTRATION'),
+      (1, 'Registration confirmed for 24-Hour GenAI Campus Hackathon! Team entry pass generated.', 'REGISTRATION'),
+      (1, 'Registration confirmed for Rigolence Annual Cultural Fest! Save your QR pass.', 'REGISTRATION'),
+      (1, 'Registration confirmed for Inter-Department Sports League! Tournament badge active.', 'REGISTRATION');
+    `);
 
-      // Seed Notifications
-      await connection.query(`
-        INSERT INTO notifications (student_id, message, notification_type) VALUES 
-        (1, 'Registration confirmed for AI & Machine Learning Workshop! Present your QR code at the entrance.', 'REGISTRATION'),
-        (1, 'Welcome to College Event Management Portal! Browse upcoming fests and workshops.', 'SYSTEM'),
-        (2, 'Registration confirmed for AI & Machine Learning Workshop! Save your QR code.', 'REGISTRATION');
-      `);
-
-      console.log('Seeded initial registrations, attendance, and notifications.');
-    }
+    console.log('Seeded 5 active presentation registrations and passes for student 1.');
 
     console.log('Database seeding complete successfully!');
   } catch (err) {
